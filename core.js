@@ -2,7 +2,7 @@
 'use strict';
 
 const CFG = window.SIDRA_CONFIG || {};
-const S = { me: null, users: [], initiatives: [], projects: [], tasks: [], subtasks: [], stages: [], statuses: [], priorities: [], today: '' };
+const S = { me: null, users: [], initiatives: [], projects: [], tasks: [], subtasks: [], stages: [], doneStage: '', holdStage: '', statuses: [], priorities: [], today: '' };
 const ACT = {};          // click / change / submit handlers, looked up by data-act, data-change, data-submit
 let PORTAL = 'admin';    // set by admin.js or member.js
 let PAGE = null;         // { shell(): html }
@@ -58,10 +58,10 @@ const pname = id => (S.projects.find(p => p.id === id) || {}).name || '';
 const iname = id => (S.initiatives.find(i => i.id === id) || {}).name || '';
 const activeUsers = () => S.users.filter(u => u.active);
 const addDays = (ymd, n) => { const d = new Date(ymd + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
-const isOpen = t => t.stage !== 'Completed';
-const overdue = t => isOpen(t) && t.stage !== 'Parked' && !!t.dueDate && t.dueDate < S.today;
-const dueSoon = t => isOpen(t) && t.stage !== 'Parked' && !!t.dueDate && t.dueDate >= S.today && t.dueDate <= addDays(S.today, 3);
-const tpct = t => t.stage === 'Completed' ? 100 : t.progress;
+const isOpen = t => t.stage !== S.doneStage;
+const overdue = t => isOpen(t) && t.stage !== S.holdStage && !!t.dueDate && t.dueDate < S.today;
+const dueSoon = t => isOpen(t) && t.stage !== S.holdStage && !!t.dueDate && t.dueDate >= S.today && t.dueDate <= addDays(S.today, 3);
+const tpct = t => t.stage === S.doneStage ? 100 : t.progress;
 const pct = list => list.length ? Math.round(list.reduce((a, t) => a + tpct(t), 0) / list.length) : 0;
 const fdate = ymd => ymd ? new Date(ymd + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'No date';
 const ftime = iso => iso ? new Date(iso).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
